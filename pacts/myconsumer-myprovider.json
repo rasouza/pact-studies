@@ -1,0 +1,48 @@
+{
+  "consumer": {
+    "name": "MyConsumer"
+  },
+  "provider": {
+    "name": "MyProvider"
+  },
+  "messages": [
+    {
+      "description": "a interaction",
+      "providerStates": [
+        {
+          "name": "interaction exists",
+          "params": null
+        }
+      ],
+      "contents": {
+        "merchant_code": "MCL3HPF3",
+        "referral_code": "ochYN"
+      },
+      "matchingRules": {
+        "body": {
+          "$.merchant_code": {
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.referral_code": {
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metaData": {
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  }
+}

@@ -1,28 +1,40 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
+	"testing"
 
+	"github.com/pact-foundation/pact-go/dsl"
 	"github.com/streadway/amqp"
 )
 
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-	}
+var pact = dsl.Pact{
+	Consumer: "MyConsumer",
+	Provider: "MyProvider",
+	LogDir:   logDir,
+	PactDir:  pactDir,
+	LogLevel: "DEBUG",
 }
 
-func main() {
-
-	forever := make(chan bool)
-
-	consume()
-
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	<-forever
+func TestConsumer(t *testing.T) {
+	message := pact.AddMessage()
+	message.
+		Given("interaction exists").
+		ExpectsToReceive("a interaction").
+		WithContent(map[string]interface{}{
+			"merchant_code": dsl.Like("MCL3HPF3"),
+			"referral_code": dsl.Like("ochYN"),
+		})
+	pact.VerifyMessageConsumer(t, message, consumeHandlerWrapper)
 }
 
-func consume() {
+var consumeHandlerWrapper = func(m dsl.Message) error {
+	return consumeHandler()
+}
+
+var consumeHandler = func() error {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -57,4 +69,10 @@ func consume() {
 			log.Printf("Received a message: %s", d.Body)
 		}
 	}()
+
+	return nil
 }
+
+var dir, _ = os.Getwd()
+var pactDir = fmt.Sprintf("%s/pacts", dir)
+var logDir = fmt.Sprintf("%s/log", dir)
